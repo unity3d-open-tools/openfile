@@ -1,6 +1,20 @@
 ﻿#pragma strict
 
 public class OFSerializer {
+	public static function CanSerialize ( type : System.Type ) : boolean {
+		var str : String = type.ToString ();
+		str = str.Replace ( "UnityEngine.", "" );
+		var strings : String[] = System.Enum.GetNames ( OFFieldType );
+
+		for ( var i : int = 0; i < strings.Length; i++ ) {
+			if ( strings[i] == str ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	
 	public static function Serialize ( input : OFSerializedObject ) : JSONObject {
 		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
 

@@ -1,12 +1,20 @@
 ﻿#pragma strict
 
 public enum OFFieldType {
-	None,
+	None,	
 	Boolean,
-	String,
+	BoxCollider,
+	CapsuleCollider,
+	GameObject,
+	MeshCollider,
+	MeshFilter,
+	MeshRenderer,
 	Number,
+	Rigidbody,
+	String,
 	Transform,
-	GameObject
+	Vector3,
+	Vector2,
 }
 
 public class OFField {
@@ -23,4 +31,9 @@ public class OFField {
 
 public class OFSerializedObject extends MonoBehaviour {
 	public var fields : OFField [];	
+	public var prefabPath : String = "";
+
+	public function SetField ( name, type ) {
+		
+	}
 }
