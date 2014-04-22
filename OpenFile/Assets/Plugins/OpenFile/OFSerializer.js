@@ -24,7 +24,8 @@ public class OFSerializer {
 		var components : JSONObject = new JSONObject ( JSONObject.Type.ARRAY );
 
 		output.AddField ( "name", input.gameObject.name );
-		output.AddField ( "guid", input.guid ); 
+		output.AddField ( "guid", input.guid );
+	        output.AddField ( "prefabPath", input.prefabPath );	
 
 		for ( var i : int = 0; i < input.fields.Length; i++ ) {
 			var c : Component = input.fields[i].component;

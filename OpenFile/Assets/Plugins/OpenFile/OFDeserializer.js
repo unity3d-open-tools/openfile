@@ -2,7 +2,19 @@
 
 public class OFDeserializer {
 	public static function Deserialize ( input : JSONObject ) : OFSerializedObject {
-		var output : OFSerializedObject = new GameObject ( "name", OFSerializedObject ).GetComponent.<OFSerializedObject>();
+		var output : OFSerializedObject;
+		var existingCopy : OFSerializedObject = OFSerializedObject.FindObject ( input.GetField ( "guid" ).str );
+
+		if ( existingCopy ) {
+			output = existingCopy;
+
+		} else if ( input.HasField ( "prefabPath" ) && !String.IsNullOrEmpty ( input.GetField ( "prefabPath" ).str ) ) {	
+			var newGO : GameObject = MonoBehaviour.Instantiate ( Resources.Load ( input.GetField ( "prefabPath" ).str ) ) as GameObject;
+			output = newGO.GetComponent.<OFSerializedObject>();
+		} else {
+			output = new GameObject ( "name", OFSerializedObject ).GetComponent.<OFSerializedObject>();
+		}
+		
 		var components : JSONObject = input.GetField ( "components" );
 
 		output.gameObject.name = input.GetField ( "name" ).str;
@@ -32,11 +44,9 @@ public class OFDeserializer {
 
 	// Transform
 	public static function DeserializeTransform ( input : JSONObject, transform : Transform ) {
-		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
-
-		transform.eulerAngles = DeserializeVector3 ( output.GetField ( "eulerAngles" ) );
-		transform.position = DeserializeVector3 ( output.GetField ( "position" ) );
-		transform.localScale = DeserializeVector3 ( output.GetField ( "localScale" ) );
+		transform.eulerAngles = DeserializeVector3 ( input.GetField ( "eulerAngles" ) );
+		transform.position = DeserializeVector3 ( input.GetField ( "position" ) );
+		transform.localScale = DeserializeVector3 ( input.GetField ( "localScale" ) );
 	}
 
 	/////////////////

@@ -22,8 +22,7 @@ public class OFReader {
 	
 		sr.Close();
 		
-		//return new JSONObject ( input );
-		return new JSONObject ();
+		return new JSONObject ( input, -2, false, false );
 	}
 
 	public static function LoadScene ( parent : GameObject, path : String ) {

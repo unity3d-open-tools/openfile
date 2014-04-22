@@ -112,4 +112,18 @@ public class OFSerializedObject extends MonoBehaviour {
 
 		fields = tmpFields.ToArray ();
 	}
+
+	public static function FindObject ( guid : String ) : OFSerializedObject {
+		var result : OFSerializedObject;
+		var allObjects : OFSerializedObject[] = GameObject.FindObjectsOfType.<OFSerializedObject>();
+
+		for ( var i : int = 0; i < allObjects.Length; i++ ) {
+			if ( allObjects[i].guid == guid ) {
+				result = allObjects[i];
+				break;
+			}	
+		}
+
+		return result;
+	}
 }
