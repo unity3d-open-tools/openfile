@@ -4,10 +4,9 @@ import System.IO;
 
 public class OFReader {
 	public static function LoadFile ( path : String ) : JSONObject {
-		if ( OFWeb.IsWebPlayer() ) {
+		#if UNITY_WEBPLAYER
 			return OFWeb.Get ( path );
-
-		} else {
+		#else
 			if ( !File.Exists ( path ) ) {
 				Debug.LogError ( "OFReader | No such file '" + path + "'" );
 				return null;
@@ -27,8 +26,7 @@ public class OFReader {
 			sr.Close();
 			
 			return new JSONObject ( input, -2, false, false );
-		
-		}
+		#endif
 	}
 
 	public static function LoadScene ( parent : GameObject, path : String ) {

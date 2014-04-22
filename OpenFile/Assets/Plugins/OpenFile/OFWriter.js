@@ -4,10 +4,9 @@ import System.IO;
 
 public class OFWriter {
 	public static function SaveFile ( input : JSONObject, path : String ) {
-		if ( OFWeb.IsWebPlayer () ) {
+		#if UNITY_WEBPLAYER
 			OFWeb.Set ( path, input );
-
-		} else {
+		#else
 			var sw : StreamWriter;
 			
 			if ( !File.Exists ( path ) ) {
@@ -19,8 +18,7 @@ public class OFWriter {
 			sw.WriteLine ( input );
 			sw.Flush();
 			sw.Close();
-		
-		}
+		#endif
 	}
 
 	public static function SaveScene ( parent : GameObject, path : String ) {
