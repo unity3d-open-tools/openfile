@@ -57,21 +57,41 @@ public class OFSerializedObjectInspector extends Editor {
 			}
 
 			if ( OFSerializer.CanSerialize ( allComponents[i].GetType() ) ) {
-				EditorGUILayout.Toggle ( name, false );
+				var hasField : boolean = obj.HasField ( name );
+				
+				hasField = EditorGUILayout.Toggle ( name, hasField );
 		
+				if ( hasField ) {
+					obj.SetField ( name, allComponents[i] );
+				
+				} else {
+					obj.RemoveField ( name );
+
+				}
+
 			} else {
 				var isExpanded : boolean = expandedComponent == i;
+				var wasExpanded : boolean = isExpanded;
 
 				isExpanded = EditorGUILayout.Foldout ( isExpanded, name );
 
-				if ( isExpanded ) {
+				if ( wasExpanded && !isExpanded ) {
+					expandedComponent = -1;
+				
+				} else if ( isExpanded ) {
 					expandedComponent = i;
 
 					var serializedObject : SerializedObject = new SerializedObject ( allComponents[i] );
 					var serializedProperty : SerializedProperty = serializedObject.GetIterator ();
 
 					while ( serializedProperty.NextVisible(true) ) {
-						EditorGUILayout.Toggle ( serializedProperty.name, false );
+						if ( OFSerializer.CanSerialize ( serializedProperty.propertyType.ToString() ) ) {
+							EditorGUILayout.Toggle ( serializedProperty.name, false );
+						} else {
+							GUI.color = new Color ( 1, 1, 1, 0.5 );
+							EditorGUILayout.LabelField ( serializedProperty.name );
+							GUI.color = Color.white;
+						}
 					}
 				}
 			}

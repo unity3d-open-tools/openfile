@@ -2,7 +2,11 @@
 
 public class OFSerializer {
 	public static function CanSerialize ( type : System.Type ) : boolean {
-		var str : String = type.ToString ();
+		return CanSerialize ( type.ToString () );
+	}
+
+	public static function CanSerialize ( type : String ) : boolean {
+		var str : String = type;
 		str = str.Replace ( "UnityEngine.", "" );
 		var strings : String[] = System.Enum.GetNames ( OFFieldType );
 
@@ -30,8 +34,12 @@ public class OFSerializer {
 					output.AddField ( input.fields[i].name, input.fields[i].str );
 					break;
 
-				case OFFieldType.Number:
-					output.AddField ( input.fields[i].name, input.fields[i].n );
+				case OFFieldType.Int:
+					output.AddField ( input.fields[i].name, input.fields[i].i );
+					break;
+				
+				case OFFieldType.Float:
+					output.AddField ( input.fields[i].name, input.fields[i].f );
 					break;
 				
 				case OFFieldType.Transform:
