@@ -40,6 +40,7 @@ public class OFSerializer {
 		return output;
 	}
 
+
 	//////////////////
 	// Classes
 	//////////////////
@@ -70,6 +71,7 @@ public class OFSerializer {
 		return output;
 	}
 
+	
 	/////////////////
 	// Structs
 	/////////////////

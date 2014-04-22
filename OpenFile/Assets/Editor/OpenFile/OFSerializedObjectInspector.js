@@ -12,32 +12,53 @@ public class OFSerializedObjectInspector extends Editor {
 		}
 		
 		var obj : OFSerializedObject = target as OFSerializedObject;
-
-		EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
 		
-		EditorGUILayout.BeginHorizontal ();
-
-		EditorGUILayout.TextField ( "Path", obj.prefabPath );
-
-		GUI.backgroundColor = Color.green;
-		if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
-			var path : String = AssetDatabase.GetAssetPath ( obj.gameObject );
-			if ( path.Contains ( "Assets/Resources/" ) ) {
-				path = path.Replace ( "Assets/Resources/", "" );
-				path = path.Replace ( ".prefab", "" );
-
-				obj.prefabPath = path;
-				
-				resourceWarning = false;
+		if ( obj.gameObject.activeInHierarchy ) {
+			// Instance
+			EditorGUILayout.LabelField ( "Instance", EditorStyles.boldLabel );
 			
-			} else {
-				resourceWarning = true;
-			
+			EditorGUILayout.BeginHorizontal ();
+
+			EditorGUILayout.TextField ( "GUID", obj.guid );
+
+			GUI.backgroundColor = Color.green;
+			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
+				obj.guid = System.Guid.NewGuid().ToString();
 			}
-		}
-		GUI.backgroundColor = Color.white;
+			GUI.backgroundColor = Color.white;
 
-		EditorGUILayout.EndHorizontal ();
+			EditorGUILayout.EndHorizontal ();
+		
+		} else {
+			obj.guid = "";
+			
+			// Resource
+			EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
+			
+			EditorGUILayout.BeginHorizontal ();
+
+			EditorGUILayout.TextField ( "Path", obj.prefabPath );
+
+			GUI.backgroundColor = Color.green;
+			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
+				var path : String = AssetDatabase.GetAssetPath ( obj.gameObject );
+				if ( path.Contains ( "Assets/Resources/" ) ) {
+					path = path.Replace ( "Assets/Resources/", "" );
+					path = path.Replace ( ".prefab", "" );
+
+					obj.prefabPath = path;
+					
+					resourceWarning = false;
+				
+				} else {
+					resourceWarning = true;
+				
+				}
+			}
+			GUI.backgroundColor = Color.white;
+
+			EditorGUILayout.EndHorizontal ();
+		}
 
 		if ( resourceWarning ) {
 			obj.prefabPath = "";

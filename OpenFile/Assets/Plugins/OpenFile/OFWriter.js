@@ -4,17 +4,23 @@ import System.IO;
 
 public class OFWriter {
 	public static function SaveFile ( input : JSONObject, path : String ) {
-		var sw : StreamWriter;
-		
-		if ( !File.Exists ( path ) ) {
-			sw = File.CreateText ( path );
+		if ( OFWeb.IsWebPlayer () ) {
+			OFWeb.Set ( path, input );
+
 		} else {
-			sw = new StreamWriter ( path );
+			var sw : StreamWriter;
+			
+			if ( !File.Exists ( path ) ) {
+				sw = File.CreateText ( path );
+			} else {
+				sw = new StreamWriter ( path );
+			}
+					
+			sw.WriteLine ( input );
+			sw.Flush();
+			sw.Close();
+		
 		}
-				
-		sw.WriteLine ( input );
-		sw.Flush();
-		sw.Close();
 	}
 
 	public static function SaveScene ( parent : GameObject, path : String ) {

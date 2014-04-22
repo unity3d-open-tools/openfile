@@ -65,7 +65,9 @@ public class OFSerializedObject extends MonoBehaviour {
 	public var prefabPath : String = "";
 
 	public function Start () {
-		guid = System.Guid.NewGuid().ToString();
+		if ( String.IsNullOrEmpty ( guid ) ) {
+			guid = System.Guid.NewGuid().ToString();
+		}
 	}
 
 	public function SetField ( name : String, value : Component ) {
@@ -125,5 +127,9 @@ public class OFSerializedObject extends MonoBehaviour {
 		}
 
 		return result;
+	}
+
+	public static function GetAllInScene () : OFSerializedObject [] {
+		return GameObject.FindObjectsOfType.<OFSerializedObject>();
 	}
 }

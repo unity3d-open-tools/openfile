@@ -4,25 +4,31 @@ import System.IO;
 
 public class OFReader {
 	public static function LoadFile ( path : String ) : JSONObject {
-		if ( !File.Exists ( path ) ) {
-			Debug.LogError ( "OFReader | No such file '" + path + "'" );
-			return null;
-		}
-		
-		var sr : StreamReader = new File.OpenText( path );
-		var input : String = "";
-		var line : String = "";
-		
-		line = sr.ReadLine();
-		
-		while ( line != null ) {
-			input += line;
+		if ( OFWeb.IsWebPlayer() ) {
+			return OFWeb.Get ( path );
+
+		} else {
+			if ( !File.Exists ( path ) ) {
+				Debug.LogError ( "OFReader | No such file '" + path + "'" );
+				return null;
+			}
+			
+			var sr : StreamReader = new File.OpenText( path );
+			var input : String = "";
+			var line : String = "";
+			
 			line = sr.ReadLine();
-		}
-	
-		sr.Close();
+			
+			while ( line != null ) {
+				input += line;
+				line = sr.ReadLine();
+			}
 		
-		return new JSONObject ( input, -2, false, false );
+			sr.Close();
+			
+			return new JSONObject ( input, -2, false, false );
+		
+		}
 	}
 
 	public static function LoadScene ( parent : GameObject, path : String ) {

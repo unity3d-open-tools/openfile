@@ -3,12 +3,8 @@
 public class OFDeserializer {
 	public static function Deserialize ( input : JSONObject ) : OFSerializedObject {
 		var output : OFSerializedObject;
-		var existingCopy : OFSerializedObject = OFSerializedObject.FindObject ( input.GetField ( "guid" ).str );
 
-		if ( existingCopy ) {
-			output = existingCopy;
-
-		} else if ( input.HasField ( "prefabPath" ) && !String.IsNullOrEmpty ( input.GetField ( "prefabPath" ).str ) ) {	
+		if ( input.HasField ( "prefabPath" ) && !String.IsNullOrEmpty ( input.GetField ( "prefabPath" ).str ) ) {	
 			var newGO : GameObject = MonoBehaviour.Instantiate ( Resources.Load ( input.GetField ( "prefabPath" ).str ) ) as GameObject;
 			output = newGO.GetComponent.<OFSerializedObject>();
 		} else {
@@ -31,6 +27,7 @@ public class OFDeserializer {
 		return output;
 	}
 
+
 	//////////////////
 	// Classes
 	//////////////////
@@ -48,6 +45,7 @@ public class OFDeserializer {
 		transform.position = DeserializeVector3 ( input.GetField ( "position" ) );
 		transform.localScale = DeserializeVector3 ( input.GetField ( "localScale" ) );
 	}
+
 
 	/////////////////
 	// Structs
