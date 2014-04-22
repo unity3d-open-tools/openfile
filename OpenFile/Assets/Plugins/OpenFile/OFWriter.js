@@ -4,7 +4,7 @@ import System.IO;
 
 public class OFWriter {
 	public static function SaveFile ( input : JSONObject, path : String ) {
-		#if UNITY_WEBPLAYER
+		#if UNITY_WEBPLAYER && !UNITY_EDITOR
 			OFWeb.Set ( path, input );
 		#else
 			var sw : StreamWriter;

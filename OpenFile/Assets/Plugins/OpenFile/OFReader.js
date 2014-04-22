@@ -4,7 +4,7 @@ import System.IO;
 
 public class OFReader {
 	public static function LoadFile ( path : String ) : JSONObject {
-		#if UNITY_WEBPLAYER
+		#if UNITY_WEBPLAYER && !UNITY_EDITOR
 			return OFWeb.Get ( path );
 		#else
 			if ( !File.Exists ( path ) ) {
