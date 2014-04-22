@@ -27,6 +27,11 @@ public class OFReader {
 	}
 
 	public static function LoadScene ( parent : GameObject, path : String ) {
+		var input : JSONObject = LoadFile ( path );
 
+		for ( var i : int = 0; i < input.list.Count; i++ ) {
+			var newObject : OFSerializedObject = OFDeserializer.Deserialize ( input.list[i] );
+			newObject.transform.parent = parent.transform;
+		}
 	}
 }

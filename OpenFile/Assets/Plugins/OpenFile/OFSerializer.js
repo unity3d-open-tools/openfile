@@ -21,36 +21,20 @@ public class OFSerializer {
 	
 	public static function Serialize ( input : OFSerializedObject ) : JSONObject {
 		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+		var components : JSONObject = new JSONObject ( JSONObject.Type.ARRAY );
 
 		output.AddField ( "name", input.gameObject.name );
+		output.AddField ( "guid", input.guid ); 
 
 		for ( var i : int = 0; i < input.fields.Length; i++ ) {
-			switch ( input.fields[i].type ) {
-				case OFFieldType.Boolean:
-					output.AddField ( input.fields[i].name, input.fields[i].b );
-					break;
-			
-				case OFFieldType.String:
-					output.AddField ( input.fields[i].name, input.fields[i].str );
-					break;
+			var c : Component = input.fields[i].component;
 
-				case OFFieldType.Int:
-					output.AddField ( input.fields[i].name, input.fields[i].i );
-					break;
-				
-				case OFFieldType.Float:
-					output.AddField ( input.fields[i].name, input.fields[i].f );
-					break;
-				
-				case OFFieldType.Transform:
-					output.AddField ( input.fields[i].name, SerializeTransform ( input.fields[i].transform ) );
-					break;
-				
-				case OFFieldType.GameObject:
-					output.AddField ( input.fields[i].name, SerializeGameObject ( input.fields[i].gameObject ) );
-					break;
+			if ( c ) {
+				components.Add ( SerializeComponent ( c ) );
 			}
 		}
+
+		output.AddField ( "components", components );
 
 		return output;
 	}
@@ -58,39 +42,20 @@ public class OFSerializer {
 	//////////////////
 	// Classes
 	//////////////////
-	// GameObject
-	public static function SerializeGameObject ( input : GameObject ) : JSONObject {
-		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
-		var serializedObject : OFSerializedObject = input.GetComponent.<OFSerializedObject> ();
-		var allComponents : Component[] = input.GetComponents.<Component> ();
-
-		if ( serializedObject ) {
-			output = Serialize ( serializedObject );
-		
-		} else {
-			output.AddField ( "name", input.name );
-
-			for ( var i : int = 0; i < allComponents.Length; i++ ) {
-				var name : String = allComponents[i].GetType().ToString();
-				name = char.ToLowerInvariant ( name[0] ) + name.Substring (1);
-				
-				output.AddField ( name, SerializeComponent ( allComponents[i] ) );	
-			}
-
-		}
-			
-		return output;
-	}
-
 	// Component
 	public static function SerializeComponent ( input : Component ) : JSONObject {
-		if ( input.GetType() == typeof ( Transform ) ) {
-			return SerializeTransform ( input as Transform );
+		var output : JSONObject;
 		
-		} else {
-			return null;
+		if ( input.GetType() == typeof ( Transform ) ) {
+			output = SerializeTransform ( input as Transform );
 		
 		}
+
+		if ( output != null ) {
+			output.AddField ( "_TYPE_", input.GetType().ToString().Replace ( "UnityEngine.", "" ) );
+		}
+
+		return output;
 	}
 
 	// Transform
@@ -100,7 +65,7 @@ public class OFSerializer {
 		output.AddField ( "eulerAngles", SerializeVector3 ( input.eulerAngles ) );
 		output.AddField ( "position", SerializeVector3 ( input.position ) );
 		output.AddField ( "localScale", SerializeVector3 ( input.localScale ) );
-
+	
 		return output;
 	}
 

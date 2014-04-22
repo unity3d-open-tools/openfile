@@ -3,20 +3,16 @@
 public enum OFFieldType {
 	None,	
 	Boolean,
-	//BoxCollider,
-	//CapsuleCollider,
 	Float,
-	GameObject,
 	Int,
-	//MeshCollider,
-	//MeshFilter,
-	//MeshRenderer,
 	Rect,
-	//Rigidbody,
 	String,
-	Transform,
 	Vector3,
 	Vector2,
+
+	// Component types
+	Component,
+	Transform,
 }
 
 public class OFField {
@@ -27,17 +23,14 @@ public class OFField {
 	public var str : String;
 	public var i : int;
 	public var f : float;
-	public var transform : Transform;
-	public var gameObject : GameObject;
 	public var v3 : Vector3;
 	public var v2 : Vector2;
 	public var rect : Rect;
+	public var component : Component;
 
-	public function Set ( value : Object ) {
-		if ( value.GetType() == typeof ( Transform ) ) {
-			type = OFFieldType.Transform;
-			transform = value as Transform;
-		}
+	public function Set ( value : Component ) {
+		type = OFFieldType.Component;
+		component = value;
 	}
 	
 	public function Set ( value : Rect ) {
@@ -68,9 +61,14 @@ public class OFField {
 
 public class OFSerializedObject extends MonoBehaviour {
 	public var fields : OFField [];	
+	public var guid : String = "";
 	public var prefabPath : String = "";
 
-	public function SetField ( name : String, value : Object ) {
+	public function Start () {
+		guid = System.Guid.NewGuid().ToString();
+	}
+
+	public function SetField ( name : String, value : Component ) {
 		var tmpFields : List.< OFField > = new List.< OFField > ( fields );
 		var found : boolean = false;
 

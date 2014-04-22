@@ -6,6 +6,11 @@ public class OFSerializedObjectInspector extends Editor {
 	private var resourceWarning : boolean = false;
 	
 	override function OnInspectorGUI () {
+		if ( Application.isPlaying ) {
+			EditorGUILayout.LabelField ( "Cannot edit serializable objects while playing" );
+			return;
+		}
+		
 		var obj : OFSerializedObject = target as OFSerializedObject;
 
 		EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
@@ -14,25 +19,23 @@ public class OFSerializedObjectInspector extends Editor {
 
 		EditorGUILayout.TextField ( "Path", obj.prefabPath );
 
-		if ( !Application.isPlaying ) {
-			GUI.backgroundColor = Color.green;
-			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
-				var path : String = AssetDatabase.GetAssetPath ( obj.gameObject );
-				if ( path.Contains ( "Assets/Resources/" ) ) {
-					path = path.Replace ( "Assets/Resources/", "" );
-					path = path.Replace ( ".prefab", "" );
+		GUI.backgroundColor = Color.green;
+		if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
+			var path : String = AssetDatabase.GetAssetPath ( obj.gameObject );
+			if ( path.Contains ( "Assets/Resources/" ) ) {
+				path = path.Replace ( "Assets/Resources/", "" );
+				path = path.Replace ( ".prefab", "" );
 
-					obj.prefabPath = path;
-					
-					resourceWarning = false;
+				obj.prefabPath = path;
 				
-				} else {
-					resourceWarning = true;
-				
-				}
+				resourceWarning = false;
+			
+			} else {
+				resourceWarning = true;
+			
 			}
-			GUI.backgroundColor = Color.white;
 		}
+		GUI.backgroundColor = Color.white;
 
 		EditorGUILayout.EndHorizontal ();
 
