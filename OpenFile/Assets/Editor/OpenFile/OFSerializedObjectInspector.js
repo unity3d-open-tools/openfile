@@ -5,40 +5,71 @@ public class OFSerializedObjectInspector extends Editor {
 	private var expandedComponent : int = -1;
 	private var resourceWarning : boolean = false;
 	
+	private function SavePrefab ( target : UnityEngine.Object ) {
+		var selectedGameObject : GameObject;
+		var selectedPrefabType : PrefabType;
+		var parentGameObject : GameObject;
+		var prefabParent : UnityEngine.Object;
+		     
+		selectedGameObject = Selection.gameObjects[0];
+		selectedPrefabType = PrefabUtility.GetPrefabType(selectedGameObject);
+		parentGameObject = selectedGameObject.transform.root.gameObject;
+		prefabParent = PrefabUtility.GetPrefabParent(selectedGameObject);
+		     
+		EditorUtility.SetDirty(target);
+		     
+		if (selectedPrefabType == PrefabType.PrefabInstance) {
+			PrefabUtility.ReplacePrefab(parentGameObject, prefabParent,
+			ReplacePrefabOptions.ConnectToPrefab);
+	    	}
+	}
+	
 	override function OnInspectorGUI () {
-		if ( Application.isPlaying ) {
-			EditorGUILayout.LabelField ( "Cannot edit serializable objects while playing" );
-			return;
+		var obj : OFSerializedObject = target as OFSerializedObject;
+		var inScene : boolean = obj.gameObject.activeInHierarchy;
+
+		if ( !inScene ) {
+			GUI.color = new Color ( 1, 1, 1, 0.5 );
 		}
 		
-		var obj : OFSerializedObject = target as OFSerializedObject;
+		// Instance
+		EditorGUILayout.LabelField ( "Instance", EditorStyles.boldLabel );
 		
-		if ( obj.gameObject.activeInHierarchy ) {
-			// Instance
-			EditorGUILayout.LabelField ( "Instance", EditorStyles.boldLabel );
-			
-			EditorGUILayout.BeginHorizontal ();
+		EditorGUILayout.BeginHorizontal ();
 
-			EditorGUILayout.TextField ( "GUID", obj.guid );
+		EditorGUILayout.TextField ( "ID", obj.id );
 
+		if ( inScene ) {
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
-				obj.guid = System.Guid.NewGuid().ToString();
+				obj.RenewId();
 			}
 			GUI.backgroundColor = Color.white;
+		}
 
-			EditorGUILayout.EndHorizontal ();
+		EditorGUILayout.EndHorizontal ();
+
+		GUI.color = new Color ( 1, 1, 1, 1 );
+
+		if ( !inScene ) {
+			obj.id = "";
 		
 		} else {
-			obj.guid = "";
-			
-			// Resource
-			EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
-			
-			EditorGUILayout.BeginHorizontal ();
+			GUI.color = new Color ( 1, 1, 1, 0.5 );
+		
+		}
 
-			EditorGUILayout.TextField ( "Path", obj.prefabPath );
+		// Resource
+		EditorGUILayout.Space ();
+		EditorGUILayout.LabelField ( "Resource", EditorStyles.boldLabel );
+		
+		EditorGUILayout.BeginHorizontal ();
 
+		EditorGUILayout.TextField ( "Path", obj.prefabPath );
+
+		var item : OSItem = obj.GetComponent.< OSItem > ();
+
+		if ( !inScene && !item ) {
 			GUI.backgroundColor = Color.green;
 			if ( GUILayout.Button ( "Update", GUILayout.Width ( 60 ) ) ) {
 				var path : String = AssetDatabase.GetAssetPath ( obj.gameObject );
@@ -56,9 +87,13 @@ public class OFSerializedObjectInspector extends Editor {
 				}
 			}
 			GUI.backgroundColor = Color.white;
+		
+		} else if ( item ) {
+			obj.prefabPath = item.prefabPath;
 
-			EditorGUILayout.EndHorizontal ();
-		}
+		}	
+
+		EditorGUILayout.EndHorizontal ();
 
 		if ( resourceWarning ) {
 			obj.prefabPath = "";
@@ -68,6 +103,8 @@ public class OFSerializedObjectInspector extends Editor {
 		}
 		
 		EditorGUILayout.Space ();
+		
+		GUI.color = new Color ( 1, 1, 1, 1 );
 
 		EditorGUILayout.LabelField ( "Components", EditorStyles.boldLabel );
 		var allComponents : Component[] = obj.gameObject.GetComponents.<Component>();
@@ -120,6 +157,24 @@ public class OFSerializedObjectInspector extends Editor {
 				}
 			}
 			
+		}
+
+		EditorGUILayout.Space ();
+
+		EditorGUILayout.LabelField ( "File operations", EditorStyles.boldLabel );
+
+		EditorGUILayout.BeginHorizontal ();
+
+		obj.exportPath = EditorGUILayout.TextField ( obj.exportPath );
+
+		if ( GUILayout.Button ( "Export" ) ) {
+			OFWriter.SaveFile ( OFSerializer.Serialize ( obj ), Application.dataPath + "/" + obj.exportPath + "/" + obj.name + ".json" );
+		}
+		
+		EditorGUILayout.EndHorizontal ();
+
+		if ( GUI.changed ) {
+			SavePrefab ( target );
 		}
 	}
 }

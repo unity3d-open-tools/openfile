@@ -1,18 +1,33 @@
 ﻿#pragma strict
+#pragma downcast
 
 public enum OFFieldType {
-	None,	
+	// System types
+	None = 0,	
 	Boolean,
 	Float,
 	Int,
-	Rect,
 	String,
+	
+	// Unity structs
+	Rect = 100,
+	Quaternion,
 	Vector3,
 	Vector2,
+	Color,
 
 	// Component types
+	Animator = 200,
 	Component,
+	Light,
 	Transform,
+
+	// OpenTools types
+	OACharacter = 300,
+	OCTree,
+	OPPathFinder,
+	OSInventory,
+	OSItem,
 }
 
 public class OFField {
@@ -23,16 +38,29 @@ public class OFField {
 	public var str : String;
 	public var i : int;
 	public var f : float;
-	public var v3 : Vector3;
-	public var v2 : Vector2;
+	public var vector3 : Vector3;
+	public var vector2 : Vector2;
 	public var rect : Rect;
+	public var color : Color;
 	public var component : Component;
 
+	public static function GetComponentType ( value : Component ) : int {
+		var strings : String [] = System.Enum.GetNames ( OFFieldType );
+		var type : String = value.GetType().ToString().Replace ( "UnityEngine.", "" ); 
+		
+		return System.Enum.Parse ( typeof ( OFFieldType ), type );
+	}
+
 	public function Set ( value : Component ) {
-		type = OFFieldType.Component;
+		type = GetComponentType ( value );
 		component = value;
 	}
 	
+	public function Set ( value : Color ) {
+		type = OFFieldType.Color;
+		color = value;
+	}
+
 	public function Set ( value : Rect ) {
 		type = OFFieldType.Rect;
 		rect = value;
@@ -50,23 +78,28 @@ public class OFField {
 	
 	public function Set ( value : Vector3 ) {
 		type = OFFieldType.Vector3;
-		v3 = value;
+		vector3 = value;
 	}
 	
 	public function Set ( value : Vector2 ) {
 		type = OFFieldType.Vector2;
-		v2 = value;
+		vector2 = value;
 	}
 }
 
 public class OFSerializedObject extends MonoBehaviour {
-	public var fields : OFField [];	
-	public var guid : String = "";
+	public var fields : OFField [] = new OFField[0];	
+	public var id : String = "";
 	public var prefabPath : String = "";
+	public var exportPath : String = "";
+
+	public function RenewId () {
+		id = System.Guid.NewGuid().ToString();
+	}
 
 	public function Start () {
-		if ( String.IsNullOrEmpty ( guid ) ) {
-			guid = System.Guid.NewGuid().ToString();
+		if ( String.IsNullOrEmpty ( id ) ) {
+			RenewId ();
 		}
 	}
 
@@ -92,6 +125,16 @@ public class OFSerializedObject extends MonoBehaviour {
 		fields = tmpFields.ToArray ();
 	}
 	
+	public function HasFieldType ( type : OFFieldType ) : boolean {
+		for ( var i : int = 0; i < fields.Length; i++ ) {
+			if ( fields[i].type == type ) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
 	public function HasField ( name : String ) : boolean {
 		for ( var i : int = 0; i < fields.Length; i++ ) {
 			if ( fields[i].name == name ) {
@@ -115,12 +158,22 @@ public class OFSerializedObject extends MonoBehaviour {
 		fields = tmpFields.ToArray ();
 	}
 
-	public static function FindObject ( guid : String ) : OFSerializedObject {
+	public function GetComponentType ( type : OFFieldType ) : Component {
+		for ( var i : int = 0; i < fields.Length; i++ ) {
+			if ( fields[i] && fields[i].component && fields[i].type == type ) {
+				return fields[i].component;
+			}
+		}
+		
+		return null;
+	}
+
+	public static function FindObject ( id : String ) : OFSerializedObject {
 		var result : OFSerializedObject;
 		var allObjects : OFSerializedObject[] = GameObject.FindObjectsOfType.<OFSerializedObject>();
 
 		for ( var i : int = 0; i < allObjects.Length; i++ ) {
-			if ( allObjects[i].guid == guid ) {
+			if ( allObjects[i].id == id ) {
 				result = allObjects[i];
 				break;
 			}	
