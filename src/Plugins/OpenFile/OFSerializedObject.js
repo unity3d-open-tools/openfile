@@ -1,89 +1,102 @@
 ﻿#pragma strict
-#pragma downcast
-
-public enum OFFieldType {
-	// System types
-	None = 0,	
-	Boolean,
-	Float,
-	Int,
-	String,
-	
-	// Unity structs
-	Rect = 100,
-	Quaternion,
-	Vector3,
-	Vector2,
-	Color,
-
-	// Component types
-	Animator = 200,
-	Component,
-	Light,
-	Transform,
-
-	// OpenTools types
-	OACharacter = 300,
-	OCTree,
-	OPPathFinder,
-	OSInventory,
-	OSItem,
-}
 
 public class OFField {
-	public var type : OFFieldType;
+	public var typeIndex : int;
 	public var name : String = "";
 
-	public var b : boolean;
-	public var str : String;
-	public var i : int;
-	public var f : float;
-	public var vector3 : Vector3;
-	public var vector2 : Vector2;
-	public var rect : Rect;
-	public var color : Color;
 	public var component : Component;
 
-	public static function GetComponentType ( value : Component ) : int {
-		var strings : String [] = System.Enum.GetNames ( OFFieldType );
-		var type : String = value.GetType().ToString().Replace ( "UnityEngine.", "" ); 
+	private static var plugins : OFPlugin [];
+	private static var allTypes : System.Type [];
+
+	public function get type () : System.Type {
+		return GetTypes () [ typeIndex ];
+	}
+
+	public static function GetTypeByIndex ( i : int ) : System.Type {
+		if ( !plugins ) {
+			plugins = OFReflector.GetPlugins ();
+		}
+
+		var types : System.Type [] = GetTypes ();
+
+		if ( i >= 0 && i < types.Length ) {
+			return types [i];
+
+		} else {
+			return null;
+		}
+	}
+	
+	public static function GetTypeByName ( n : String ) : System.Type {
+		if ( !plugins ) {
+			plugins = OFReflector.GetPlugins ();
+		}
+
+		var types : System.Type [] = GetTypes ();
+
+		for ( var i : int = 0; i < types.Length; i++ ) {
+			if ( types[i].ToString().Replace ( "UnityEngine.", "" ) == n ) {
+				return types [i];
+			}
+		}
 		
-		return System.Enum.Parse ( typeof ( OFFieldType ), type );
+		return null;
+	}
+	
+	public static function GetTypes () : System.Type [] {
+		if ( !allTypes ) {
+			if ( !plugins ) {
+				plugins = OFReflector.GetPlugins ();
+			}
+
+			var types : List.< System.Type > = new List.< System.Type > ();
+
+			for ( var i : int = 0; i < plugins.Length; i++ ) {
+				for ( var t : int = 0; t < plugins[i].types.Length; t++ ) {
+					types.Add ( plugins[i].types[t] );
+				}
+			}
+
+			types.Add ( typeof ( Transform ) );
+			types.Add ( typeof ( Light ) );
+
+			allTypes = types.ToArray ();
+		}
+
+		return allTypes;
+	}
+
+	public static function GetTypeStrings () : String [] {
+		var strings : List.< String > = new List.< String > ();
+		var types : System.Type [] = GetTypes ();
+		
+		for ( var i : int = 0; i < types.Length; i++ ) {
+			strings.Add ( types[i].ToString ().Replace ( "UnityEngine.", "" ) );
+		}
+
+		return strings.ToArray ();
+	}
+	
+	public static function GetComponentType ( value : Component ) : int {
+		if ( !plugins ) {
+			plugins = OFReflector.GetPlugins ();
+		}
+
+		var types : System.Type [] = GetTypes ();
+		
+		for ( var i : int = 0; i < types.Length; i++ ) {
+			if ( types[i] == value.GetType() ) {
+				return i;	
+			}
+		}
+
+		return -1;
 	}
 
 	public function Set ( value : Component ) {
-		type = GetComponentType ( value );
+		typeIndex = GetComponentType ( value );
 		component = value;
-	}
-	
-	public function Set ( value : Color ) {
-		type = OFFieldType.Color;
-		color = value;
-	}
-
-	public function Set ( value : Rect ) {
-		type = OFFieldType.Rect;
-		rect = value;
-	}
-
-	public function Set ( value : float ) {
-		type = OFFieldType.Float;
-		f = value;
-	}
-	
-	public function Set ( value : int ) {
-		type = OFFieldType.Int;
-		i = value;
-	}
-	
-	public function Set ( value : Vector3 ) {
-		type = OFFieldType.Vector3;
-		vector3 = value;
-	}
-	
-	public function Set ( value : Vector2 ) {
-		type = OFFieldType.Vector2;
-		vector2 = value;
 	}
 }
 
@@ -125,7 +138,7 @@ public class OFSerializedObject extends MonoBehaviour {
 		fields = tmpFields.ToArray ();
 	}
 	
-	public function HasFieldType ( type : OFFieldType ) : boolean {
+	public function HasFieldType ( type : System.Type ) : boolean {
 		for ( var i : int = 0; i < fields.Length; i++ ) {
 			if ( fields[i].type == type ) {
 				return true;
@@ -158,7 +171,7 @@ public class OFSerializedObject extends MonoBehaviour {
 		fields = tmpFields.ToArray ();
 	}
 
-	public function GetComponentType ( type : OFFieldType ) : Component {
+	public function GetComponentType ( type : System.Type ) : Component {
 		for ( var i : int = 0; i < fields.Length; i++ ) {
 			if ( fields[i] && fields[i].component && fields[i].type == type ) {
 				return fields[i].component;

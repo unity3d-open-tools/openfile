@@ -28,17 +28,4 @@ public class OFReader {
 			return new JSONObject ( input, -2, false, false );
 		#endif
 	}
-
-	public static function LoadChildren ( parents : Transform[], path : String ) {
-		OFDeserializer.DeserializeChildren ( LoadFile ( path ), parents );
-	}
-
-	public static function LoadScene ( parent : GameObject, path : String ) {
-		var input : JSONObject = LoadFile ( path );
-
-		for ( var i : int = 0; i < input.list.Count; i++ ) {
-			var newObject : OFSerializedObject = OFDeserializer.Deserialize ( input.list[i] ) as OFSerializedObject;
-			newObject.transform.parent = parent.transform;
-		}
-	}
 }

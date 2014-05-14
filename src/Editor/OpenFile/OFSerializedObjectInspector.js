@@ -2,7 +2,6 @@
 
 @CustomEditor ( OFSerializedObject )
 public class OFSerializedObjectInspector extends Editor {
-	private var expandedComponent : int = -1;
 	private var resourceWarning : boolean = false;
 	
 	private function SavePrefab ( target : UnityEngine.Object ) {
@@ -110,6 +109,8 @@ public class OFSerializedObjectInspector extends Editor {
 		var allComponents : Component[] = obj.gameObject.GetComponents.<Component>();
 
 		for ( var i : int = 0; i < allComponents.Length; i++ ) {
+			if ( !allComponents[i] ) { continue; }
+
 			var name : String = allComponents[i].GetType().ToString();
 			name = name.Replace ( "UnityEngine.", "" );
 
@@ -131,30 +132,10 @@ public class OFSerializedObjectInspector extends Editor {
 				}
 
 			} else {
-				var isExpanded : boolean = expandedComponent == i;
-				var wasExpanded : boolean = isExpanded;
-
-				isExpanded = EditorGUILayout.Foldout ( isExpanded, name );
-
-				if ( wasExpanded && !isExpanded ) {
-					expandedComponent = -1;
-				
-				} else if ( isExpanded ) {
-					expandedComponent = i;
-
-					var serializedObject : SerializedObject = new SerializedObject ( allComponents[i] );
-					var serializedProperty : SerializedProperty = serializedObject.GetIterator ();
-
-					while ( serializedProperty.NextVisible(true) ) {
-						if ( OFSerializer.CanSerialize ( serializedProperty.propertyType.ToString() ) ) {
-							EditorGUILayout.Toggle ( serializedProperty.name, false );
-						} else {
-							GUI.color = new Color ( 1, 1, 1, 0.5 );
-							EditorGUILayout.LabelField ( serializedProperty.name );
-							GUI.color = Color.white;
-						}
-					}
-				}
+				GUI.color = new Color ( 1, 1, 1, 0.5 );
+				EditorGUILayout.LabelField ( name );
+				GUI.color = Color.white;
+			
 			}
 			
 		}

@@ -21,12 +21,6 @@ public class OFWriter {
 		#endif
 	}
 
-	public static function SaveChildren ( parents : Transform[], path : String ) {
-		var output : JSONObject = OFSerializer.SerializeChildren ( parents );
-
-		SaveFile ( output, path );
-	}	
-
 	public static function SaveScene ( parent : GameObject, path : String ) {
 		var allObjects : OFSerializedObject[] = parent.GetComponentsInChildren.<OFSerializedObject> ();
 		var output : JSONObject = new JSONObject ( JSONObject.Type.ARRAY );
