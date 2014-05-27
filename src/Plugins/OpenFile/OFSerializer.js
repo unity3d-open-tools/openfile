@@ -97,6 +97,9 @@ public class OFSerializer extends MonoBehaviour {
 		} else if ( input.GetType() == typeof ( Transform ) ) {
 			output = Serialize ( input as Transform );
 		
+		} else if ( input.GetType() == typeof ( AudioSource ) ) {
+			output = Serialize ( input as AudioSource );
+		
 		// Plugins
 		} else {
 	       		for ( var i : int = 0; i < plugins.Length; i++ ) {
@@ -126,6 +129,30 @@ public class OFSerializer extends MonoBehaviour {
 		output.AddField ( "color", Serialize ( input.color ) );
 		output.AddField ( "intensity", input.intensity );
 		output.AddField ( "shadows", input.shadows.ToString () );
+	
+		return output;
+	}
+	
+	// AudioSource
+	public static function Serialize ( input : AudioSource ) : JSONObject {
+		if ( !input ) { return null; }
+		
+		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+
+		output.AddField ( "clip", input.clip.name );
+		output.AddField ( "dopplerLevel", input.dopplerLevel );
+		output.AddField ( "ignoreListenerPause", input.ignoreListenerPause );
+		output.AddField ( "ignoreListenerVolume", input.ignoreListenerVolume );
+		output.AddField ( "loop", input.loop );
+		output.AddField ( "maxDistance", input.maxDistance );
+		output.AddField ( "minDistance", input.minDistance );
+		output.AddField ( "panLevel", input.panLevel );
+		output.AddField ( "pitch", input.pitch );
+		output.AddField ( "playOnAwake", input.playOnAwake );
+		output.AddField ( "priority", input.priority );
+		output.AddField ( "rolloffMode", input.rolloffMode );
+		output.AddField ( "spread", input.spread );
+		output.AddField ( "volume", input.volume );
 	
 		return output;
 	}

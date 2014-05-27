@@ -51,15 +51,16 @@ public class OFField {
 			}
 
 			var types : List.< System.Type > = new List.< System.Type > ();
+			
+			types.Add ( typeof ( AudioSource ) );
+			types.Add ( typeof ( Light ) );
+			types.Add ( typeof ( Transform ) );
 
 			for ( var i : int = 0; i < plugins.Length; i++ ) {
 				for ( var t : int = 0; t < plugins[i].types.Length; t++ ) {
 					types.Add ( plugins[i].types[t] );
 				}
 			}
-
-			types.Add ( typeof ( Transform ) );
-			types.Add ( typeof ( Light ) );
 
 			allTypes = types.ToArray ();
 		}

@@ -15,4 +15,14 @@ public class OFPlugin {
 
 		return false;
 	}
+	
+	public function CheckType ( typeString : String ) : boolean {
+		for ( var i : int = 0; i < types.Length; i++ ) {
+			if ( typeString == types[i].ToString () ) {
+				return true;	
+			}
+		}
+
+		return false;
+	}
 }

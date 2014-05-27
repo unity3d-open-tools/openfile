@@ -12,9 +12,10 @@ public class OFDeserializer {
 			this.i = i;
 		}
 	}
+	
+	public static var planner : OFPlanner;
 
 	private static var connectQueue : List.< QueueItem > = new List.< QueueItem > ();
-	private static var spawnedObjects : List.< OFSerializedObject > = new List.< OFSerializedObject > ();
 	private static var plugins : OFPlugin[];
 	
 	public static function DeferConnection ( f : Function, id : String, i : int ) {
@@ -26,28 +27,17 @@ public class OFDeserializer {
 	}
 
 	public static function FindObject ( id : String ) : OFSerializedObject {
-		for ( var i : int = 0; i < spawnedObjects.Count; i++ ) {
-			if ( spawnedObjects[i].id == id ) {
-				return spawnedObjects[i];
+		if ( !String.IsNullOrEmpty ( id ) ) {
+			for ( var i : int = 0; i < planner.spawnedObjects.Count; i++ ) {
+				if ( planner.spawnedObjects[i].id == id ) {
+					return planner.spawnedObjects[i];
+				}
 			}
 		}
 
 		return null;
 	}
 	
-	private static function ConnectAll () {
-		for ( var i : int = 0; i < connectQueue.Count; i++ ) {
-			if ( connectQueue[i].i >= 0 ) {
-				connectQueue[i].f ( FindObject ( connectQueue[i].id ), connectQueue[i].i );
-			} else {
-				connectQueue[i].f ( FindObject ( connectQueue[i].id ) );
-			}
-		}
-
-		connectQueue.Clear ();
-		spawnedObjects.Clear ();
-	}
-
 	public static function ParseEnum ( e : System.Type, s : String ) : int {
 		var strings : String[] = System.Enum.GetNames ( e );
 		
@@ -79,7 +69,25 @@ public class OFDeserializer {
 		return component;
 	}
 	
+	public static function CheckComponent ( obj : OFSerializedObject, typeString : String ) : Component {
+		var component = obj.gameObject.GetComponent ( typeString );
+		var forceAdd : boolean = false;
+
+		if ( !component ) {
+			component = obj.gameObject.AddComponent ( typeString );
+			forceAdd = true;
+		}
+
+		if ( forceAdd ) {
+			obj.SetField ( typeString.Replace ( "UnityEngine.", "" ), component );
+		}
+
+		return component;
+	}
+	
 	public static function DeserializeChildren ( input : JSONObject, parent : Transform ) {
+		planner = new GameObject ( "OFPlanner" ).AddComponent.< OFPlanner > ();
+		
 		for ( var i : int = 0; i < input.list.Count; i++ ) {
 			var p : JSONObject = input.list[i];
 			if ( p.HasField ( "dontInstantiate" ) ) { continue; }
@@ -97,7 +105,7 @@ public class OFDeserializer {
 				t.parent = parent;
 				t.position = Vector3.zero;
 			}
-
+			
 			for ( var json : JSONObject in p.list ) {
 				var so : OFSerializedObject = Deserialize ( json );
 				
@@ -105,9 +113,8 @@ public class OFDeserializer {
 					so.transform.parent = t;
 				}
 			}
+			
 		}
-
-		ConnectAll ();
 	}
 	
 	// This creates a new GameObject
@@ -153,20 +160,22 @@ public class OFDeserializer {
 				case "Transform":
 					Deserialize ( components.list[i], CheckComponent ( output, typeof ( Transform ), true ) as Transform );
 					break;
+				
+				case "AudioSource":
+					Deserialize ( components.list[i], CheckComponent ( output, typeof ( AudioSource ) ) as AudioSource );
+					break;
 			}
 
 			// Plugins
 	       		for ( var p : int = 0; p < plugins.Length; p++ ) {
-				var type : System.Type = System.Type.GetType ( typeString ); 
-
-				if ( type != null && plugins[p].CheckType ( type ) ) {
-					plugins[p].Deserialize ( components.list[i], CheckComponent ( output, type ) );
+				if ( !String.IsNullOrEmpty ( typeString ) && plugins[p].CheckType ( typeString ) ) {
+					plugins[p].Deserialize ( components.list[i], CheckComponent ( output, typeString ) );
 				}
 			}
 
 		}
 
-		spawnedObjects.Add ( output );
+		planner.spawnedObjects.Add ( output );
 
 		return output;
 	}
@@ -189,6 +198,24 @@ public class OFDeserializer {
 		transform.eulerAngles = DeserializeVector3 ( input.GetField ( "eulerAngles" ) );
 		transform.position = DeserializeVector3 ( input.GetField ( "position" ) );
 		transform.localScale = DeserializeVector3 ( input.GetField ( "localScale" ) );
+	}
+	
+	// AudioSource
+	public static function Deserialize ( input : JSONObject, audio : AudioSource ) {
+		//audio.clip = input.GetField ( "clip" ).str;
+		audio.dopplerLevel = input.GetField ( "dopplerLevel" ).n;
+		audio.ignoreListenerPause = input.GetField ( "ignoreListenerPause" ).b;
+		audio.ignoreListenerVolume = input.GetField ( "ignoreListenerVolume" ).b;
+		audio.loop = input.GetField ( "loop" ).b;
+		audio.maxDistance = input.GetField ( "maxDistance" ).n;
+		audio.minDistance = input.GetField ( "minDistance" ).n;
+		audio.panLevel = input.GetField ( "panLevel" ).n;
+		audio.pitch = input.GetField ( "pitch" ).n;
+		audio.playOnAwake = input.GetField ( "playOnAwake" ).b;
+		audio.priority = input.GetField ( "priority" ).n;
+		audio.rolloffMode = Mathf.RoundToInt ( input.GetField ( "rolloffMode" ).n );
+		audio.spread = input.GetField ( "spread" ).n;
+		audio.volume = input.GetField ( "volume" ).n;
 	}
 
 
