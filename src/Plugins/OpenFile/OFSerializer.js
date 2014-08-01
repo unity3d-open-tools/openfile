@@ -121,6 +121,18 @@ public class OFSerializer extends MonoBehaviour {
 		} else if ( input.GetType() == typeof ( AudioSource ) ) {
 			output = Serialize ( input as AudioSource );
 		
+		} else if ( input.GetType() == typeof ( MeshFilter ) ) {
+			output = Serialize ( input as MeshFilter );
+		
+		} else if ( input.GetType() == typeof ( MeshRenderer ) ) {
+			output = Serialize ( input as MeshRenderer );
+		
+		} else if ( input.GetType() == typeof ( SphereCollider ) ) {
+			output = Serialize ( input as SphereCollider );
+		
+		} else if ( input.GetType() == typeof ( BoxCollider ) ) {
+			output = Serialize ( input as BoxCollider );
+		
 		// Plugins
 		} else {
 	       		for ( var i : int = 0; i < plugins.Length; i++ ) {
@@ -151,6 +163,60 @@ public class OFSerializer extends MonoBehaviour {
 		output.AddField ( "intensity", input.intensity );
 		output.AddField ( "shadows", input.shadows.ToString () );
 	
+		return output;
+	}
+
+	// BoxCollider
+	public static function Serialize ( input : BoxCollider ) : JSONObject {
+		if ( !input ) { return null; }
+		
+		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+
+		output.AddField ( "center", Serialize ( input.center ) );
+		output.AddField ( "size", Serialize ( input.size ) );
+
+		return output;
+	}
+	
+	// SphereCollider
+	public static function Serialize ( input : SphereCollider ) : JSONObject {
+		if ( !input ) { return null; }
+		
+		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+
+		output.AddField ( "center", Serialize ( input.center ) );
+		output.AddField ( "radius", input.radius );
+
+		return output;
+	}
+
+	// MeshFilter
+	public static function Serialize ( input : MeshFilter ) : JSONObject {
+		if ( !input ) { return null; }
+		
+		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+
+		return output;
+	}
+
+	// MeshRenderer
+	public static function Serialize ( input : MeshRenderer ) : JSONObject {
+		if ( !input ) { return null; }
+		
+		var output : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+		var materials : JSONObject = new JSONObject ( JSONObject.Type.ARRAY );
+
+		for ( var i : int = 0; i < input.materials.Length; i++ ) {
+			var material : JSONObject = new JSONObject ( JSONObject.Type.OBJECT );
+
+			material.AddField ( "name", input.materials[i].name );
+			material.AddField ( "shader", input.materials[i].shader.name );
+
+			materials.Add ( material );
+		}
+
+		output.AddField ( "materials", materials );
+
 		return output;
 	}
 	

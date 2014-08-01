@@ -15,6 +15,9 @@ public class OFAssetLink {
 
 	private var texture : Texture2D;
 	private var audioClip : AudioClip;
+	private var mesh : Mesh;
+	private var material : Material;
+	private var shader : Shader;
 
 	public function Reset () {
 		texture = null;
@@ -26,16 +29,43 @@ public class OFAssetLink {
 
 	public function GetLinkType () : Type {
 		if ( !String.IsNullOrEmpty ( filePath ) ) {
-			return Type.File;
+			type = Type.File;
 		
 		} else if ( !String.IsNullOrEmpty ( resourcePath ) ) {
-			return Type.Resource;
+			type = Type.Resource;
 
 		} else if ( !String.IsNullOrEmpty ( bundlePath ) ) {
-			return Type.Bundle;
+			type = Type.Bundle;
 
 		} else {
-			return -1;
+			type = -1;
+
+		}
+
+		return type;
+	}
+
+	public function GetMesh () : Mesh {
+		if ( mesh == null && !String.IsNullOrEmpty ( bundlePath ) ) {
+			var strings : String [] = bundlePath.Split ( ">"[0] );
+			var bundle : OFBundle = OFBundleManager.instance.GetBundle ( strings [0] );
+	
+			if ( bundle ) {
+				mesh = bundle.GetMesh ( strings[1] );
+			}
+		}
+
+		return mesh;
+	}
+	
+	public function GetMesh ( callback : System.Action.< Mesh > ) : IEnumerator {
+		if ( mesh == null && !String.IsNullOrEmpty ( filePath ) ) {
+			mesh = ObjImporter.Importer.ImportFile ( filePath );
+
+			callback ( mesh );
+		
+		} else {
+			callback ( mesh );
 
 		}
 	}
@@ -158,6 +188,10 @@ public class OFField {
 			
 			types.Add ( typeof ( AudioSource ) );
 			types.Add ( typeof ( Light ) );
+			types.Add ( typeof ( MeshFilter ) );
+			types.Add ( typeof ( MeshRenderer ) );
+			types.Add ( typeof ( SphereCollider ) );
+			types.Add ( typeof ( BoxCollider ) );
 			types.Add ( typeof ( Transform ) );
 
 			for ( var i : int = 0; i < plugins.Length; i++ ) {
@@ -299,6 +333,10 @@ public class OFSerializedObject extends MonoBehaviour {
 
 		AddAssetLink ( name, path, type );
 	}	
+
+	public function SetField ( value : Component ) {
+		SetField ( value.GetType().ToString(), value );
+	}
 
 	public function SetField ( name : String, value : Component ) {
 		var tmpFields : List.< OFField > = new List.< OFField > ( fields );

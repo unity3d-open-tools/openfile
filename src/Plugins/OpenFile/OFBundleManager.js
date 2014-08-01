@@ -11,13 +11,14 @@ public class OFBundleManager extends MonoBehaviour {
 	public var loadedBundles : List.< OFBundle > = new List.< OFBundle > ();
 
 	public static var instance : OFBundleManager;
+	public static var loading : boolean = false;
 
 	public function Awake () {
 		if ( instance != this ) {
 			instance = this;
 			
 			if ( loadOnAwake ) {
-				LoadAllBundles ();
+				StartCoroutine ( LoadAllBundles () );
 			}
 		}
 	}
@@ -28,33 +29,40 @@ public class OFBundleManager extends MonoBehaviour {
 		return strings [ strings.length - 1 ];
 	}
 
-	private function PopulateFolder ( folder : OFBundle.Folder ) : void {
+	private function PopulateFolder ( folder : OFBundle.Folder ) : IEnumerator {
 		for ( var texPath : String in Directory.GetFiles ( folder.path, "*.png" ) ) {
 			texPath = texPath.Replace ( "\\", "/" );
 
-			StartCoroutine ( function () : IEnumerator {
-				var www : WWW = new WWW ( "file:///" + texPath );
-				yield www;
+			var www : WWW = new WWW ( "file:///" + texPath );
+			yield www;
 
-				var newTex : Texture2D = www.texture;
-				newTex.name = GetName ( texPath );
+			var newTex : Texture2D = www.texture;
+			newTex.name = GetName ( texPath );
 
-				folder.AddTexture ( newTex );
-			} () );
+			folder.AddTexture ( newTex );
+		}
+		
+		for ( var meshPath : String in Directory.GetFiles ( folder.path, "*.obj" ) ) {
+			meshPath = meshPath.Replace ( "\\", "/" );
+			
+			var newMesh : Mesh = ObjImporter.Importer.ImportFile ( meshPath );
+			newMesh.name = GetName ( meshPath );
+
+			OFHelper.SolveTangents ( newMesh );
+
+			folder.AddMesh ( newMesh );
 		}
 
 		for ( var audioPath : String in Directory.GetFiles ( folder.path, "*.ogg" ) ) {
 			audioPath = audioPath.Replace ( "\\", "/" );
 			
-			StartCoroutine ( function () : IEnumerator {
-				var www : WWW = new WWW ( "file:///" + audioPath );
-				yield www;
+			www = new WWW ( "file:///" + audioPath );
+			yield www;
 
-				var newAudio : AudioClip = www.audioClip;
-				newAudio.name = GetName ( audioPath );
+			var newAudio : AudioClip = www.audioClip;
+			newAudio.name = GetName ( audioPath );
 
-				folder.AddAudio ( newAudio );
-			} () );
+			folder.AddAudio ( newAudio );
 		}
 		
 		var directories : String [] = Directory.GetDirectories ( folder.path );
@@ -92,19 +100,25 @@ public class OFBundleManager extends MonoBehaviour {
 		return strings;
 	}
 
-	public function LoadAllBundles () {
+	public function LoadAllBundles () : IEnumerator {
+		loading = true;
+		
 		for ( var dirPath : String in System.IO.Directory.GetDirectories ( Application.dataPath + "/" + bundleFolder ) ) {
-			LoadBundle ( GetName ( dirPath ), false );
+			yield LoadBundle ( GetName ( dirPath ), false );
 		}
 		
 		for ( var zipPath : String in System.IO.Directory.GetFiles ( Application.dataPath + "/" + bundleFolder ) ) {
 			if ( zipPath.Contains ( "." + bundleExtension ) ) {
-				LoadBundle ( GetName ( zipPath ), true );
+				yield LoadBundle ( GetName ( zipPath ), true );
 			}
 		}
+
+		yield WaitForEndOfFrame ();
+
+		loading = false;
 	}
 
-	public function LoadBundle ( name : String, compressed : boolean ) {
+	public function LoadBundle ( name : String, compressed : boolean ) : IEnumerator {
 		var path : String;
 		
 		if ( compressed ) {
@@ -132,7 +146,7 @@ public class OFBundleManager extends MonoBehaviour {
 		newBundle.root = new OFBundle.Folder ();
 		newBundle.root.path = path;
 
-		PopulateFolder ( newBundle.root );
+		yield PopulateFolder ( newBundle.root );
 
 		loadedBundles.Add ( newBundle );
 	}

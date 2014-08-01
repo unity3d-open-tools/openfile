@@ -5,8 +5,9 @@ public class OFBundle {
 		public var name : String;
 		public var path : String;
 		public var subfolders : Folder [] = new Folder [0];
-		public var textures : Texture2D [] = new Texture2D [0];
 		public var audioClips : AudioClip [] = new AudioClip [0];
+		public var meshes : Mesh [] = new Mesh [0];
+		public var textures : Texture2D [] = new Texture2D [0];
 
 		public function GetFolder ( n : String ) : Folder {
 			for ( var i : int = 0; i < subfolders.Length; i++ ) {
@@ -16,6 +17,14 @@ public class OFBundle {
 			}
 			
 			return null;
+		}
+		
+		public function AddMesh ( mesh : Mesh ) {
+			var tmp : List.< Mesh > = new List.< Mesh > ( meshes );
+
+			tmp.Add ( mesh );
+
+			meshes = tmp.ToArray ();
 		}
 
 		public function AddTexture ( texture : Texture2D ) {
@@ -76,6 +85,9 @@ public class OFBundle {
 		} else if ( type == typeof ( AudioClip ) ) {
 			return GetAudioClip ( path );
 		
+		} else if ( type == typeof ( Mesh ) ) {
+			return GetMesh ( path );
+		
 		} else {
 			return null;
 
@@ -89,11 +101,45 @@ public class OFBundle {
 		} else if ( type == typeof ( AudioClip ) ) {
 			return GetAudioClips ( path );
 		
+		} else if ( type == typeof ( Mesh ) ) {
+			return GetMeshes ( path );
+		
 		} else {
 			return null;
 
 		}
 	}	
+	
+	public function GetMeshes ( path : String ) : Mesh [] {
+		var folder : Folder = GetFolder ( path );
+		
+		if ( folder ) {
+			return folder.meshes;
+		
+		} else {
+			return null;
+		
+		}
+	}
+
+	public function GetMesh ( path : String ) : Mesh {
+		var folder : Folder = GetFolder ( path );
+		var meshName : String = OFBundleManager.GetName ( path );
+
+		if ( folder ) {
+			for ( var i : int = 0; i < folder.meshes.Length; i++ ) {
+				if ( folder.meshes[i].name == meshName ) {
+					return folder.meshes[i];
+				}
+			}
+
+			return null;
+	
+		} else {
+			return null;
+		
+		}
+	}
 
 	public function GetTextures ( path : String ) : Texture2D [] {
 		var folder : Folder = GetFolder ( path );
@@ -109,10 +155,11 @@ public class OFBundle {
 
 	public function GetTexture ( path : String ) : Texture2D {
 		var folder : Folder = GetFolder ( path );
+		var texName : String = OFBundleManager.GetName ( path );
 		
 		if ( folder ) {
 			for ( var i : int = 0; i < folder.textures.Length; i++ ) {
-				if ( folder.textures[i].name == name ) {
+				if ( folder.textures[i].name == texName ) {
 					return folder.textures[i];
 				}
 			}
